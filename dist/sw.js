@@ -1,0 +1,5 @@
+const V="smartcash-v0.7", CORE=["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "favicon.svg", "js/cash.js", "js/core.js", "js/cust.js", "js/data.js", "js/geo.js", "js/i18n/ar.js", "js/i18n/bn.js", "js/i18n/en.js", "js/i18n/fa.js", "js/i18n/fil.js", "js/i18n/fr.js", "js/i18n/hi.js", "js/i18n/id.js", "js/i18n/ml.js", "js/i18n/ne.js", "js/i18n/tr.js", "js/i18n/ur.js", "js/intro.js", "js/live.js", "js/pay.js", "js/plans.js", "js/plans6.js", "js/views.js", "js/views2.js", "js/views3.js"];
+self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
+self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
+self.addEventListener("fetch",e=>{ const r=e.request; if(r.method!=="GET") return;
+  e.respondWith(caches.match(r).then(hit=>{ const net=fetch(r).then(res=>{ if(res&&(res.ok||res.type==="opaque")){ const cp=res.clone(); caches.open(V).then(c=>c.put(r,cp)) } return res }).catch(()=>hit||(r.mode==="navigate"?caches.match("index.html"):undefined)); return hit||net })) });
