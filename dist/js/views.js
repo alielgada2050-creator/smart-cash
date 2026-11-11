@@ -4,7 +4,7 @@ const SC = window.SC, D = window.SCDATA;
 const t = SC.t, esc = SC.esc, fmt = SC.fmt, nm = SC.nm;
 
 /* ------------------------------------------------------------------ UI state */
-const UI = SC.UI = {screen: SC.S.session ? (SC.me()?.mustChange ? "changepw" : "home") : "login", p:{}, stack:[], sheet:null, toast:null, seg:{}, q:"", draft:null, busy:null, loginErr:null, sel:null, open:{}, limit:40, f:{}};
+const UI = SC.UI = {screen: SC.S.session ? (SC.me()?.mustChange ? "changepw" : "home") : "login", p:{}, stack:[], sheet:null, toast:null, seg:{}, q:"", draft:null, busy:null, loginErr:null, otp:{}, sel:null, open:{}, limit:40, f:{}};
 
 const TABS = {
   technician:["home","invoices","folders","ledger","me"],
@@ -87,30 +87,44 @@ const managerOpts = (role, project, branch) => {
 
 /* ------------------------------------------------------------------ hairline figures */
 let HL = null; const phoneFigs = [];
-const hlReady = import("https://cdn.jsdelivr.net/npm/@lucasmarkes/hairline@0.5.1/dist/index.js").catch(()=>import("https://unpkg.com/@lucasmarkes/hairline@0.5.1/dist/index.js")).then(m=>(HL=m)).catch(()=>null);
+const hlReady = Promise.resolve();
 function mountFigs(root, keep){ hlReady.then(()=>{ if(!HL) return; root.querySelectorAll("[data-fig]:not([data-mounted])").forEach(el=>{ const fn = HL[el.dataset.fig]; if(!fn) return; el.dataset.mounted = "1";
   const f = fn(el, {play: el.dataset.play==="1", intensity:.55, label: el.dataset.label||""}); if(!keep) phoneFigs.push(f) }) }) }
 const clearFigs = () => { while(phoneFigs.length){ try{ phoneFigs.pop().destroy() }catch{} } };
 
 /* ================================================================== LOGIN & PASSWORDS */
+function authApiBase(){
+  try{
+    const url = new URL(String(window.SC_AUTH_API||"").trim());
+    if((url.protocol!=="https:" && !["localhost","127.0.0.1"].includes(url.hostname)) || url.username || url.password || url.search || url.hash) return null;
+    return url.href.replace(/\/+$/,"");
+  }catch{ return null }
+}
+function vOtpLogin(){
+  const o = UI.otp || {}, api = authApiBase();
+  if(o.user) return `<div class="glass card"><div class="t1">${t("otp_verified")}</div><div class="t2">${esc(o.user.name)} · ${esc(o.user.email)}</div><p class="sub">${t("otp_demo_limit")}</p><button class="btn btn-glass" type="button" data-act="otp-logout">${t("sign_out")}</button></div>`;
+  return `<div class="glass card form">
+    <div><div class="t1">${t("otp_sign_in")}</div><p class="sub">${t("prototype_warning")}</p></div>
+    ${api?`<form class="form" data-form="otp-request" novalidate><label class="fld"><span>${t("email")}</span><input id="otp-email" type="email" autocomplete="email" maxlength="254" required value="${esc(o.email||"")}"></label>
+      <button class="btn btn-accent" type="submit" ${UI.busy==="otp-request"?"disabled":""}>${t("otp_send")}</button></form>`
+      :`<p class="sub">${t("otp_configure")}</p>`}
+    ${o.requested?`<form class="form" data-form="otp-verify" novalidate><label class="fld"><span>${t("otp_code")}</span><input id="otp-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
+      <button class="btn btn-primary" type="submit" ${UI.busy==="otp-verify"?"disabled":""}>${t("otp_verify")}</button></form>`:""}
+    ${o.error?`<div class="err" role="alert">${t(o.error)}</div>`:""}
+    ${o.notice?`<div class="banner b-info" role="status">${t(o.notice)}</div>`:""}
+  </div>`;
+}
 function vLogin(){
-  const demo = SC.S.users.filter(u=>u.demo);
+  const demoUsers = SC.DEMO_MODE ? SC.S.users.filter(u=>u.demo) : [];
   return `<div class="login">
     <div class="login-top"><div class="brand"><span class="brand-mark">${ic("wallet",18)}</span>${t("app_name")}</div>${langSelect("lang-login")}</div>
     <div class="lang-bubbles" aria-label="${t("p_lang")}">${SC.LANGS.map((l,i)=>`<button class="lb ${l.code===SC.ui.lang?"on":""}" style="--i:${i}" data-act="lang" data-v="${l.code}" lang="${l.code}">${l.native}</button>`).join("")}</div>
     <h1 class="h1">${t("welcome_title")}</h1><p class="sub lead">${t("welcome_sub")}</p>
-    <form class="glass card form" data-form="login" novalidate>
-      <label class="fld"><span>${t("login_id")}</span><input id="login-u" autocomplete="username" placeholder="rajesh.kumar@smartcash.demo" value="${esc(UI.loginU||"")}"></label>
-      <label class="fld"><span>${t("password")}</span><input id="login-p" type="password" autocomplete="current-password" placeholder="••••••••"></label>
-      ${UI.loginErr?`<div class="err" role="alert">${t(UI.loginErr)}</div>`:""}
-      <button class="btn btn-primary" type="submit" ${UI.busy==="login"?"disabled":""}>${t("sign_in")}</button>
-      <div class="row-links"><button type="button" class="link" data-act="sheet" data-v="forgot">${t("forgot_pw")}</button><button type="button" class="link" data-act="sheet" data-v="requestacct">${t("request_account")}</button></div>
-      <div class="or"><span>${t("or")}</span></div>
-      <button class="btn btn-glass" type="button" data-act="google">${ic("g",20)}${t("google_continue")}</button>
-    </form>
-    <div class="demo"><div class="sec-t">${t("demo_accounts")}</div><div class="sub small">${t("demo_hint",{p:`<span class="num kbd">${D.PASSWORD}</span>`})}</div>
-      <div class="demo-grid">${demo.map(u=>`<button class="demo-u glass" data-act="demo" data-v="${u.id}">${avatar(u.id)}<span class="du-r">${t("role_"+u.role)}</span><span class="du-n">${esc(SC.first(u.id))}</span></button>`).join("")}</div>
-      ${SC.plan()!=="enterprise"?"":`<div class="sub small center-t">${t("company_size",{n:SC.S.users.filter(u=>u.status!=="pending").length.toLocaleString("en-US"), b:SC.S.branches.length, p:SC.S.projects.length})}</div>`}</div>
+    ${vOtpLogin()}
+    ${SC.DEMO_MODE?`<div class="banner b-warn">${t("demo_only_warning")}</div>
+    <div class="demo"><div class="sec-t">${t("demo_accounts")}</div><div class="sub small">${t("demo_preview_hint")}</div>
+      <div class="demo-grid">${demoUsers.map(u=>`<button class="demo-u glass" data-act="demo" data-v="${u.id}">${avatar(u.id)}<span class="du-r">${t("role_"+u.role)}</span><span class="du-n">${esc(SC.first(u.id))}</span></button>`).join("")}</div>
+      ${SC.plan()!=="enterprise"?"":`<div class="sub small center-t">${t("company_size",{n:SC.S.users.filter(u=>u.status!=="pending").length.toLocaleString("en-US"), b:SC.S.branches.length, p:SC.S.projects.length})}</div>`}</div>`:""}
   </div>`;
 }
 function vChangePw(){
@@ -599,7 +613,6 @@ function vMe(){
       <div class="row"><span class="ico">${ic("moon",20)}</span><div class="grow t1">${t("p_theme")}</div><div class="mini-seg">${["system","light","dark"].map(x=>`<button data-act="theme" data-v="${x}" aria-pressed="${x===SC.ui.theme}">${t(x==="system"?"sys":x)}</button>`).join("")}</div></div></div>
     <div class="sec-h"><span class="h2">${t("security")}</span></div>
     <div class="glass list"><button class="row" data-act="go" data-v="changepw"><span class="ico">${ic("key",20)}</span><div class="grow"><div class="t1">${t("change_password")}</div><div class="t2">${m.pwAt?`${t("changed_on")} <span class="num">${SC.dd(m.pwAt)}</span>`:t("pw_company_set")}</div></div>${ic("chev",16,"flip")}</button>
-      <div class="row"><span class="ico">${ic("g",20)}</span><div class="grow"><div class="t1">${t("google_account")}</div><div class="t2">${m.google?esc(m.google):t("not_linked")}</div></div>${m.google?`<button class="btn btn-sm btn-glass" data-act="unlinkg">${t("unlink")}</button>`:`<button class="btn btn-sm btn-accent" data-act="sheet" data-v="linkg">${t("link")}</button>`}</div>
       ${row("history", t("login_history"), "sessions")}</div>
     <div class="sec-h"><span class="h2">${t("my_chain")}</span><button class="link" data-act="go" data-v="team">${t("org_chart")}</button></div>
     <div class="glass list">${chain.length?chain.map(c=>`<button class="row" data-act="go" data-v="user:${c.id}">${avatar(c.id,"sm")}<div class="grow"><div class="t1">${esc(SC.uname(c.id))}</div><div class="t2">${t("role_"+c.role)}</div></div>${ic("chev",16,"flip")}</button>`).join(""):`<div class="row t2">${t("top_of_chain")}</div>`}</div>
@@ -649,12 +662,12 @@ function vUser(){
       <label class="fld"><span>${t("x_limit")} (${SC.cur()})</span><input id="ud-limit" inputmode="decimal" data-change="uedit" data-f="limit" value="${u.limit===null?"":u.limit}" placeholder="${esc(t("unlimited"))}"></label>
     </div>`:`<div class="kv glass"><div class="r"><span class="k">${t("x_reports_to")}</span><span class="v">${u.reportsTo?esc(SC.uname(u.reportsTo)):"—"}</span></div><div class="r"><span class="k">${t("x_limit")}</span><span class="v num">${u.limit===null?t("unlimited"):fmt(u.limit)}</span></div></div>`}
     <div class="kv glass"><div class="r"><span class="k">${t("email")}</span><span class="v">${esc(u.email)}</span></div><div class="r"><span class="k">${t("phone")}</span><span class="v num" dir="ltr">${esc(u.phone)}</span></div>
-      <div class="r"><span class="k">Google</span><span class="v">${u.google?esc(u.google):t("not_linked")}</span></div><div class="r"><span class="k">${t("last_login")}</span><span class="v num">${SC.dt(u.sessions[0]?.t)||"—"}</span></div>
+      <div class="r"><span class="k">${t("last_login")}</span><span class="v num">${SC.dt(u.sessions[0]?.t)||"—"}</span></div>
       ${admin?`<div class="r"><span class="k">${t("password")}</span><span class="v">${u.mustChange?t("pw_temp"):u.pwAt?`${t("changed_on")} <span class="num">${SC.dd(u.pwAt)}</span>`:t("pw_company_set")}${u.fails?` · ${t("failed_n",{n:u.fails})}`:""}</span></div>`:""}</div>
     ${admin?`<div class="pad-x stack" style="margin-top:12px">
       <button class="btn btn-accent" data-act="adminreset" data-v="${u.id}">${ic("key",18)}${t(u.status==="locked"?"unlock_reset":"reset_password")}</button>
       ${u.id!==SC.me().id?`<button class="btn ${u.status==="disabled"?"btn-glass":"btn-neg"}" data-act="setstatus" data-v="${u.status==="disabled"?"active":"disabled"}">${ic(u.status==="disabled"?"unlock":"lock",18)}${t(u.status==="disabled"?"enable_account":"disable_account")}</button>`:""}
-      ${u.google?`<button class="btn btn-glass" data-act="adminunlink">${t("unlink")} Google</button>`:""}</div>`:""}
+      </div>`:""}
     <div class="sec-h"><span class="h2">${t("permissions")}</span></div><div class="chips pad-x">${(D.PERMS[u.role]||[]).map(p=>`<span class="chip">${t("perm_"+p)}</span>`).join("")}</div>
     ${u.demo && u.id!==SC.me().id?`<div class="pad-x stack" style="margin-top:16px"><button class="btn btn-glass" data-act="demo" data-v="${u.id}">${ic("swap",18)}${t("sign_in_as",{n:esc(SC.first(u.id))})}</button></div>`:""}
     <div class="spacer"></div></div>`;
@@ -734,10 +747,7 @@ function sheet(){
       <label class="fld"><span>${t("reason")}</span><select id="sh-reason">${["cn_defective","cn_short","cn_price","cn_other"].map(k=>`<option value="${k}">${t(k)}</option>`).join("")}</select></label>${err}<button class="btn btn-primary" data-act="docredit">${t("issue_credit")}</button>`, t("purchase_return")) }
     case "closefolder": return wrap(`<p class="sub">${t("close_sub")}</p><div class="glass list">${["month","settle","except"].map(r=>`<button class="row" data-act="pickreason" data-v="${r}"><div class="grow t1">${t("r_"+r)}</div><span class="radio ${s.reason===r?"on":""}"></span></button>`).join("")}</div>
       <textarea id="sh-note" placeholder="${esc(t("close_note_ph"))}"></textarea>${err}<button class="btn btn-primary" data-act="doclose">${t("close_btn")}</button>`, t("close_title"));
-    case "google": { const accts = SC.S.users.filter(u=>u.google && u.demo).map(u=>u.google).concat(["new.employee.demo@gmail.com"]);
-      return wrap(`<div class="banner b-info">${ic("info",18)}<span>${t("google_demo_note")}</span></div><div class="glass list">${accts.map(g=>{ const u = SC.S.users.find(x=>x.google===g); return `<button class="row" data-act="dogoogle" data-v="${esc(g)}"><span class="avatar sm">${esc(g.charAt(0).toUpperCase())}</span><div class="grow"><div class="t1">${esc(g)}</div><div class="t2">${u?t("role_"+u.role):t("not_linked")}</div></div></button>` }).join("")}</div>${err}<button class="btn btn-glass" data-act="close">${t("cancel")}</button>`, t("google_choose")) }
     case "account": { const m = SC.me(); return wrap(`<div class="glass list">${SC.S.users.filter(u=>u.demo).map(u=>`<button class="row" data-act="demo" data-v="${u.id}">${avatar(u.id,"sm")}<div class="grow"><div class="t1">${esc(SC.uname(u.id))}</div><div class="t2">${t("role_"+u.role)}</div></div>${u.id===m?.id?`<span class="pill p-approved">${t("current")}</span>`:""}</button>`).join("")}</div><button class="btn btn-neg" data-act="logout">${ic("logout",18)}${t("sign_out")}</button>`, t("switch_account")) }
-    case "linkg": return wrap(`<p class="sub">${t("link_google_hint")}</p><label class="fld"><span>Gmail</span><input id="sh-gmail" type="email" inputmode="email" placeholder="name@gmail.com"></label>${err}<button class="btn btn-accent" data-act="dolinkg">${t("link")}</button>`, t("link_google"));
     case "newpr": return wrap(`<label class="fld"><span>${t("item")}</span><select id="sh-item">${["i_helmet","i_gloves","i_pads","i_oilf","i_oil","i_cable","i_drill","i_tape","i_paper","i_water"].map(k=>`<option value="${k}">${esc(nm(k))}</option>`).join("")}</select></label><label class="fld"><span>${t("qty")}</span><input id="sh-qty" inputmode="numeric" value="10"></label>${err}<button class="btn btn-accent" data-act="donewpr">${t("send_request")}</button>`, t("request_purchase"));
     case "rejectpr": return wrap(`<textarea id="sh-note" placeholder="${esc(t("reason_ph"))}"></textarea>${err}<button class="btn btn-neg-solid" data-act="dorejectpr">${t("reject_request")}</button>`, t("reject_request"));
     case "receive": case "match": { const p = SC.po(UI.p.id); return wrap(`${s.type==="match"?`<label class="fld"><span>${t("supplier_invoice")}</span><input id="sh-invno" placeholder="${p.sup.slice(0,3).toUpperCase()}-00000"></label>`:""}
@@ -802,7 +812,7 @@ function render(keepScroll){
   const active = document.activeElement, focusId = active && phone.contains(active) && active.id && /INPUT|TEXTAREA/.test(active.tagName) ? active.id : null, caret = focusId ? active.selectionStart : null;
   const tabbed = me && !me.mustChange && tabsOf(me).includes(UI.screen), dark = UI.screen==="scan";
   phone.className = "phone" + (dark ? " dark-screen" : "") + (UI.screen==="login" ? " is-login" : "") + (tabbed ? " has-dock" : "");
-  phone.innerHTML = `${statusbar(dark)}<main class="view${!keepScroll && UI.navDir ? " enter-"+UI.navDir : ""}" id="view">${(VIEWS[UI.screen]||vHome)()}</main>${tabbed?dock():""}${sheet()}${UI.toast?`<div class="toast ${UI.toast.bad?"bad":""}" role="status">${ic(UI.toast.bad?"warn":"ok",18)}<span>${UI.toast.msg}</span></div>`:""}`;
+  phone.innerHTML = `${statusbar(dark)}<main class="view${!keepScroll && UI.navDir ? " enter-"+UI.navDir : ""}" id="view">${SC.DEMO_MODE?`<div class="banner b-warn">${t("demo_only_warning")}</div>`:""}${(VIEWS[UI.screen]||vHome)()}</main>${tabbed?dock():""}${sheet()}${UI.toast?`<div class="toast ${UI.toast.bad?"bad":""}" role="status">${ic(UI.toast.bad?"warn":"ok",18)}<span>${UI.toast.msg}</span></div>`:""}`;
   if(keepScroll) phone.querySelector(".view").scrollTop = y;
   if(!keepScroll) UI.navDir = null;
   if(UI.sheet) UI.sheet.shown = true;
@@ -834,8 +844,8 @@ function renderPanel(){
   el.querySelector("#pn-top").innerHTML = `<div class="brand"><span class="brand-mark">${ic("wallet",18)}</span>${t("app_name")}</div><p>${t("panel_desc")}</p>`;
   el.querySelector("#pn-ctrl").innerHTML = `<div><div class="plabel">${t("p_lang")}</div>${langSelect("lang-panel")}</div>
     <div><div class="plabel">${t("p_theme")}</div><div class="chips">${["system","light","dark"].map(x=>`<button class="chip" data-act="theme" data-v="${x}" aria-pressed="${x===SC.ui.theme}">${t(x==="system"?"sys":x)}</button>`).join("")}</div></div>
-    <div><div class="plabel">${t("demo_accounts")} · <span class="num">${D.PASSWORD}</span></div><div class="pn-users">${SC.S.users.filter(u=>u.demo).map(u=>`<button class="pn-u ${m?.id===u.id?"on":""}" data-act="demo" data-v="${u.id}">${avatar(u.id,"xs")}<span>${t("role_"+u.role)}</span><span class="t2">${esc(SC.first(u.id))}</span></button>`).join("")}</div></div>
-    <div class="pn-row"><button class="chip" data-act="sheet" data-v="reset">${t("reset_demo")}</button>${m?`<button class="chip" data-act="logout">${t("sign_out")}</button>`:""}</div>`;
+    ${SC.DEMO_MODE?`<div><div class="plabel">${t("demo_accounts")}</div><div class="pn-users">${SC.S.users.filter(u=>u.demo).map(u=>`<button class="pn-u ${m?.id===u.id?"on":""}" data-act="demo" data-v="${u.id}">${avatar(u.id,"xs")}<span>${t("role_"+u.role)}</span><span class="t2">${esc(SC.first(u.id))}</span></button>`).join("")}</div></div>`:`<p class="sub">${t("prototype_warning")}</p>`}
+    <div class="pn-row">${SC.DEMO_MODE?`<button class="chip" data-act="sheet" data-v="reset">${t("reset_demo")}</button>`:""}${m?`<button class="chip" data-act="logout">${t("sign_out")}</button>`:""}</div>`;
 }
 
 /* ------------------------------------------------------------------ file inputs */
@@ -892,10 +902,20 @@ document.addEventListener("click", async (e)=>{
       if(v==="issueadv") pre.type = "technician";
       openSheet(v, pre, {k:b.dataset.k}); break }
     case "close": case "scrim": UI.sheet = null; render(true); break;
-    case "demo": SC.login(v, "password"); doLogin(); break;
-    case "google": openSheet("google"); break;
-    case "dogoogle": { const r = SC.googleLogin(v); if(r){ err(r); break } doLogin(); break }
+    case "demo": if(!SC.DEMO_MODE || !SC.login(v, "password")){ toast(t("err_demo_only"), true); break } doLogin(); break;
     case "logout": SC.logout(); UI.sheet = null; UI.stack = []; go("login", {}, false); break;
+    case "otp-logout": {
+      const token = UI.otp?.token, base = authApiBase();
+      UI.otp = {};
+      if(token && base){
+        try{
+          const response = await fetch(`${base}/api/auth/logout`, {method:"POST", headers:{Authorization:`Bearer ${token}`}});
+          if(!response.ok) throw new Error("logout_failed");
+        }
+        catch{ UI.otp.error = "otp_logout_warning" }
+      }
+      render(true); break;
+    }
     case "doreset": SC.reset(); UI.sheet = null; UI.stack = []; UI.seg = {}; go(SC.me()?"home":"login", {}, false); toast(t("reset_done")); break;
     /* accounts */
     case "doforgot": { if(!String(F.ident||"").trim()){ err("err_login_id"); break } SC.requestReset(F.ident); UI.sheet.done = true; UI.sheet.err = null; render(true); break }
@@ -968,10 +988,6 @@ document.addEventListener("click", async (e)=>{
     /* notifications */
     case "opennotif": { const n = SC.S.notifs.find(x=>x.id===v); if(n){ n.read = true; commit(); const tg = refTarget(n.ref); if(tg) go(tg); else render(true) } break }
     case "readall": SC.markAllRead(); commit(); render(true); break;
-    /* account links */
-    case "dolinkg": { const g = val("sh-gmail").trim().toLowerCase(); if(!/^[a-z0-9._%+-]+@gmail\.com$/.test(g)){ err("err_gmail"); break } if(SC.S.users.some(u=>u.google===g)){ err("err_gmail_taken"); break } m.google = g; SC.audit("au_link", g); commit(); UI.sheet = null; toast(t("toast_linked")); render(true); break }
-    case "unlinkg": SC.audit("au_unlink", m.google); m.google = null; commit(); toast(t("toast_unlinked")); render(true); break;
-    case "adminunlink": { const u = SC.user(UI.p.id); SC.audit("au_unlink", `${u.emp} · ${u.google}`); u.google = null; commit(); render(true); break }
   }
 });
 document.addEventListener("input", e=>{
@@ -1004,6 +1020,42 @@ document.addEventListener("change", e=>{
 });
 document.addEventListener("submit", async e=>{
   const f = e.target.closest("[data-form]"); if(!f) return; e.preventDefault();
+  if(f.dataset.form==="otp-request"){
+    const emailInput = document.getElementById("otp-email"), email = emailInput.value.trim().toLowerCase(), base = authApiBase();
+    if(!emailInput.checkValidity()){ UI.otp = {email, error:"otp_invalid_email"}; render(true); return }
+    UI.busy = "otp-request"; UI.otp = {email}; render(true);
+    if(!base){ UI.busy = null; UI.otp.error = "otp_configure"; render(true); return }
+    try{
+      const response = await fetch(`${base}/api/auth/request-code`, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({email})});
+      if(!response.ok) throw new Error("request_failed");
+      UI.otp = {email, requested:true, notice:"otp_request_sent"};
+    }catch{ UI.otp = {email, error:"otp_unavailable"} }
+    UI.busy = null; render(true); return;
+  }
+  if(f.dataset.form==="otp-verify"){
+    const email = UI.otp?.email, code = document.getElementById("otp-code").value.trim(), base = authApiBase();
+    if(!email || !base){ UI.otp.error = "otp_configure"; render(true); return }
+    if(!/^\d{6}$/.test(code)){ UI.otp.error = "otp_invalid_code"; render(true); return }
+    UI.busy = "otp-verify"; UI.otp.error = null; render(true);
+    let accessToken = "";
+    try{
+      const response = await fetch(`${base}/api/auth/verify-code`, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({email, code})});
+      if(!response.ok) throw new Error("invalid_code");
+      const result = await response.json();
+      accessToken = result.accessToken;
+      const sessionResponse = await fetch(`${base}/api/auth/me`, {headers:{Authorization:`Bearer ${accessToken}`}});
+      if(!sessionResponse.ok) throw new Error("invalid_code");
+      const session = await sessionResponse.json();
+      UI.otp = {email, token:accessToken, user:session.user};
+    }catch(error){
+      if(accessToken){
+        try{ await fetch(`${base}/api/auth/logout`, {method:"POST", headers:{Authorization:`Bearer ${accessToken}`}}) }
+        catch{ UI.otp.logoutFailed = true }
+      }
+      UI.otp.error = UI.otp.logoutFailed ? "otp_logout_warning" : error instanceof Error && error.message==="invalid_code" ? "otp_invalid" : "otp_unavailable";
+    }
+    UI.busy = null; render(true); return;
+  }
   if(f.dataset.form==="login"){ UI.loginU = document.getElementById("login-u").value; const pw = document.getElementById("login-p").value; UI.busy = "login"; render(true);
     const r = await SC.passwordLogin(UI.loginU, pw); UI.busy = null;
     if(r && r!=="must_change"){ UI.loginErr = r; render(true); return } doLogin(); return }

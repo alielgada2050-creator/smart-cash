@@ -3,9 +3,10 @@
 import os, re, shutil, json, glob
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src, out = os.path.join(root,"prototype"), os.path.join(root,"dist")
-shutil.rmtree(out, ignore_errors=True); os.makedirs(out)
-shutil.copytree(os.path.join(src,"js"), os.path.join(out,"js"))
-for f in ("icon-192.png","icon-512.png","icon-maskable.png","apple-touch-icon.png","favicon.svg"):
+shutil.rmtree(out, ignore_errors=True); os.makedirs(out, exist_ok=True)
+shutil.copytree(os.path.join(src,"js"), os.path.join(out,"js"), dirs_exist_ok=True)
+shutil.copytree(os.path.join(src,"vendor"), os.path.join(out,"vendor"), dirs_exist_ok=True)
+for f in ("icon-192.png","icon-512.png","icon-maskable.png","apple-touch-icon.png","favicon.svg","README-AR.txt"):
     shutil.copy(os.path.join(root,"app",f), out)
 body = open(os.path.join(src,"smart-cash.html"),encoding="utf-8").read()
 body = re.sub(r"<title>.*?</title>\n","",body,count=1)
@@ -25,11 +26,11 @@ json.dump({"name":"سمارت كاش — Smart Cash","short_name":"Smart Cash","
  "background_color":"#000000","theme_color":"#000000","description":"إدارة المصروفات والعهد والفواتير",
  "icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png"},{"src":"icon-maskable.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]},
  open(os.path.join(out,"manifest.webmanifest"),"w",encoding="utf-8"),ensure_ascii=False,indent=1)
-files = ["./","index.html","manifest.webmanifest","icon-192.png","icon-512.png","favicon.svg"]+sorted(os.path.relpath(p,out).replace(os.sep,"/") for p in glob.glob(out+"/js/**/*.js",recursive=True))
-sw = '''const V="smartcash-v0.7", CORE=%s;
+files = ["./","index.html","manifest.webmanifest","icon-192.png","icon-512.png","favicon.svg"]+sorted(os.path.relpath(p,out).replace(os.sep,"/") for p in glob.glob(out+"/js/**/*.js",recursive=True))+sorted(os.path.relpath(p,out).replace(os.sep,"/") for p in glob.glob(out+"/vendor/**/*",recursive=True) if os.path.isfile(p))
+sw = '''const V="smartcash-v0.8", CORE=%s;
 self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
-self.addEventListener("fetch",e=>{ const r=e.request; if(r.method!=="GET") return;
+self.addEventListener("fetch",e=>{ const r=e.request; if(r.method!=="GET" || new URL(r.url).pathname.includes("/api/")) return;
   e.respondWith(caches.match(r).then(hit=>{ const net=fetch(r).then(res=>{ if(res&&(res.ok||res.type==="opaque")){ const cp=res.clone(); caches.open(V).then(c=>c.put(r,cp)) } return res }).catch(()=>hit||(r.mode==="navigate"?caches.match("index.html"):undefined)); return hit||net })) });
 ''' % json.dumps(files)
 open(os.path.join(out,"sw.js"),"w").write(sw)

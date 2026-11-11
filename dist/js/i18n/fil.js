@@ -8,7 +8,7 @@ SCI18N.fil = {
 "welcome_title":"Bawat riyal, may kuwenta.","welcome_sub":"Advance, gastos, invoice at approval ng buong team mo, nasa iisang lugar.",
 "login_id":"Email o employee number","password":"Password","sign_in":"Mag-sign in","or":"o","google_continue":"Magpatuloy gamit ang Google",
 "google_choose":"Pumili ng Google account","google_demo_note":"Demo: sa app, bubukas dito ang sariling sign-in page ng Google. Dito, pumili lang ng address. Ang mga address na naka-link sa Smart Cash user lang ang makakapag-sign in.",
-"err_no_user":"Walang user na may ganyang email o employee number.","err_password":"Mali ang password. Ang demo password ay Demo@2026.","err_inactive":"Naka-off ang account na ito. Magtanong sa administrator mo.",
+"err_no_user":"Walang user na may ganyang email o employee number.","err_password":"Mali ang password.","err_inactive":"Naka-off ang account na ito. Magtanong sa administrator mo.",
 "err_google_unlinked":"Hindi naka-link ang Google account na ito sa kahit anong Smart Cash user. Pakiusapan ang administrator mo na i-link ito.",
 "signed_in_as":"Naka-sign in bilang {n} · {r}","sign_out":"Mag-sign out","switch_account":"Magpalit ng account","current":"Kasalukuyan","sign_in_as":"Mag-sign in bilang {n}",
 "hello":"Hello, {n}","notifications":"Mga notification","no_notifications":"Walang notification","n_inbox":"Naghihintay ng approval mo","n_returned":"Ibinalik sa iyo para ayusin","n_po":"Purchase order na naghihintay ng approval",

@@ -8,7 +8,7 @@ SCI18N.id = {
 "welcome_title":"Setiap riyal tercatat.","welcome_sub":"Uang muka, pengeluaran, faktur, dan persetujuan seluruh tim Anda, di satu tempat.",
 "login_id":"Email atau nomor karyawan","password":"Kata sandi","sign_in":"Masuk","or":"atau","google_continue":"Lanjutkan dengan Google",
 "google_choose":"Pilih akun Google","google_demo_note":"Demo: di aplikasi, ini membuka halaman masuk Google. Di sini, cukup pilih alamat. Hanya alamat yang tertaut ke pengguna Smart Cash yang dapat masuk.",
-"err_no_user":"Tidak ada pengguna dengan email atau nomor karyawan tersebut.","err_password":"Kata sandi salah. Kata sandi demo adalah Demo@2026.","err_inactive":"Akun ini dinonaktifkan. Hubungi administrator Anda.",
+"err_no_user":"Tidak ada pengguna dengan email atau nomor karyawan tersebut.","err_password":"Kata sandi salah.","err_inactive":"Akun ini dinonaktifkan. Hubungi administrator Anda.",
 "err_google_unlinked":"Akun Google ini tidak tertaut ke pengguna Smart Cash mana pun. Minta administrator Anda untuk menautkannya.",
 "signed_in_as":"Masuk sebagai {n} · {r}","sign_out":"Keluar","switch_account":"Ganti akun","current":"Saat ini","sign_in_as":"Masuk sebagai {n}",
 "hello":"Halo, {n}","notifications":"Notifikasi","no_notifications":"Tidak ada notifikasi","n_inbox":"Menunggu persetujuan Anda","n_returned":"Dikembalikan untuk diperbaiki","n_po":"Pesanan pembelian menunggu persetujuan",

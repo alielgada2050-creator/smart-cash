@@ -17,7 +17,6 @@ const NAMES = {
   i_drill:["مثقاب كهربائي","Electric drill"], i_tape:["شريط عازل","Insulation tape"], i_paper:["ورق A4 (كرتون)","A4 paper (box)"],
   i_trip:["نقل معدات","Equipment transport"], i_diesel:["ديزل","Diesel"], i_water:["مياه شرب","Drinking water"],
 };
-const PASSWORD = "Demo@2026";
 
 const BRANCHES = [
   {id:"RUH", name:["فرع الرياض","Riyadh branch"], region:"riyadh", gov:"riyadh"},
@@ -125,11 +124,11 @@ function buildOrg(R){
     status:"active", pw:null, mustChange:false, fails:0, demo:!!o.demo, sessions:[]}; users.push(u); return u };
 
   // head office
-  const huda = add({id:"u_fin", name:["هدى المطيري","Huda Al-Mutairi"], role:"finance", emp:"F-0009", email:"huda.mutairi@smartcash.demo", google:"huda.m.demo@gmail.com", limit:null, phone:"+966 50 000 9114", demo:true});
+  const huda = add({id:"u_fin", name:["هدى المطيري","Huda Al-Mutairi"], role:"finance", emp:"F-0009", email:"huda.mutairi@smartcash.demo", limit:null, phone:"+966 50 000 9114", demo:true});
   for(let i=0;i<4;i++) add({name:person(i%2?"fem":"arab"), role:"finance", reportsTo:huda.id, limit:100000});
   const rafiq = add({id:"u_proc", name:["محمد رفيق","Mohammad Rafiq"], role:"procurement", emp:"P-0120", email:"m.rafiq@smartcash.demo", reportsTo:huda.id, phone:"+966 53 012 0988", demo:true});
   for(let i=0;i<4;i++) add({name:person(i%2?"arab":"sa"), role:"procurement", reportsTo:rafiq.id});
-  const nasser = add({id:"u_admin", name:["ناصر العنزي","Nasser Al-Anazi"], role:"admin", emp:"IT-001", email:"nasser.anazi@smartcash.demo", google:"nasser.it.demo@gmail.com", reportsTo:huda.id, phone:"+966 59 000 1001", demo:true});
+  const nasser = add({id:"u_admin", name:["ناصر العنزي","Nasser Al-Anazi"], role:"admin", emp:"IT-001", email:"nasser.anazi@smartcash.demo", reportsTo:huda.id, phone:"+966 59 000 1001", demo:true});
   add({name:person("sa"), role:"admin", reportsTo:nasser.id});
 
   // branches → accountants
@@ -137,7 +136,7 @@ function buildOrg(R){
   BRANCHES.forEach(b=>{
     const n = b.id==="RUH" ? 3 : 1; acc[b.id] = [];
     for(let i=0;i<n;i++){
-      const u = (b.id==="RUH" && i===0) ? add({id:"u_acc", name:["سارة القحطاني","Sara Al-Qahtani"], role:"accountant", emp:"A-0415", email:"sara.qahtani@smartcash.demo", google:"sara.q.demo@gmail.com", reportsTo:huda.id, branch:"RUH", phone:"+966 55 041 5063", demo:true})
+      const u = (b.id==="RUH" && i===0) ? add({id:"u_acc", name:["سارة القحطاني","Sara Al-Qahtani"], role:"accountant", emp:"A-0415", email:"sara.qahtani@smartcash.demo", reportsTo:huda.id, branch:"RUH", phone:"+966 55 041 5063", demo:true})
         : add({name:person(i%2?"fem":"arab"), role:"accountant", reportsTo:huda.id, branch:b.id});
       acc[b.id].push(u);
     }
@@ -150,15 +149,15 @@ function buildOrg(R){
     const id = `P-${br}-${String(counts[br]).padStart(2,"0")}`;
     const b = BRANCHES.find(x=>x.id===br);
     const first = pi===0, med = id==="P-MED-01";
-    const pm = first ? add({id:"u_pm", name:["فيصل الحربي","Faisal Al-Harbi"], role:"pm", emp:"M-0102", email:"faisal.harbi@smartcash.demo", google:"faisal.h.demo@gmail.com", reportsTo:acc[br][0].id, branch:br, project:id, phone:"+966 56 010 2455", demo:true})
+    const pm = first ? add({id:"u_pm", name:["فيصل الحربي","Faisal Al-Harbi"], role:"pm", emp:"M-0102", email:"faisal.harbi@smartcash.demo", reportsTo:acc[br][0].id, branch:br, project:id, phone:"+966 56 010 2455", demo:true})
       : add({name:person("arab"), role:"pm", reportsTo:acc[br][0].id, branch:br, project:id});
     const engs = [0,1].map(k => first && k===0 ? add({id:"u_eng", name:["عمر حداد","Omar Haddad"], role:"engineer", emp:"E-0207", email:"omar.haddad@smartcash.demo", reportsTo:pm.id, branch:br, project:id, phone:"+966 54 020 7319", demo:true})
       : add({name:person(R()<.6?"arab":"sa"), role:"engineer", reportsTo:pm.id, branch:br, project:id}));
-    const sups = [0,1,2,3].map(k => first && k===0 ? add({id:"u_sup", name:["خالد السبيعي","Khaled Al-Subaie"], role:"supervisor", emp:"S-0311", email:"khaled.subaie@smartcash.demo", google:"khaled.s.demo@gmail.com", reportsTo:engs[0].id, branch:br, project:id, phone:"+966 50 031 1877", demo:true})
+    const sups = [0,1,2,3].map(k => first && k===0 ? add({id:"u_sup", name:["خالد السبيعي","Khaled Al-Subaie"], role:"supervisor", emp:"S-0311", email:"khaled.subaie@smartcash.demo", reportsTo:engs[0].id, branch:br, project:id, phone:"+966 50 031 1877", demo:true})
       : add({name:person(R()<.4?"arab":R()<.7?"sa":"ph"), role:"supervisor", reportsTo:engs[k%2].id, branch:br, project:id}));
     const nTech = Math.floor(techLeft / (PROJECTS.length - pi)); techLeft -= nTech;
     for(let k=0;k<nTech;k++){
-      if(first && k===0) add({id:"u_tech", name:["راجيش كومار","Rajesh Kumar"], role:"technician", emp:"T-1042", email:"rajesh.kumar@smartcash.demo", google:"rajesh.k.demo@gmail.com", reportsTo:sups[0].id, branch:br, project:id, phone:"+966 55 104 2201", demo:true});
+      if(first && k===0) add({id:"u_tech", name:["راجيش كومار","Rajesh Kumar"], role:"technician", emp:"T-1042", email:"rajesh.kumar@smartcash.demo", reportsTo:sups[0].id, branch:br, project:id, phone:"+966 55 104 2201", demo:true});
       else if(med && k===0) add({id:"u_tech2", name:["خوان دي لا كروز","Juan dela Cruz"], role:"technician", emp:"T-2210", email:"juan.delacruz@smartcash.demo", reportsTo:sups[0].id, branch:br, project:id, phone:"+966 58 221 0440"});
       else { const r = R(); add({name:person(r<.55?"sa":r<.8?"ph":"arab"), role:"technician", reportsTo:sups[k%4].id, branch:br, project:id}) }
     }
@@ -284,7 +283,7 @@ function seed(){
   ];
   const audit = [
     {t:"2026-11-05T05:40:00.000Z", by:"u_tech", ev:"au_login", d:"password"},
-    {t:"2026-11-05T06:02:00.000Z", by:"u_sup", ev:"au_login", d:"google"},
+    {t:"2026-11-05T06:02:00.000Z", by:"u_sup", ev:"au_login", d:"password"},
     {t:"2026-11-04T22:10:00.000Z", by:locked.id, ev:"au_locked", d:locked.emp},
     {t:"2026-11-03T09:12:00.000Z", by:"u_acc", ev:"au_credit", d:"CN-000001"},
     {t:"2026-10-30T07:20:00.000Z", by:"u_fin", ev:"au_sign", d:"BT-000087"},
@@ -294,5 +293,5 @@ function seed(){
     seq:{ex:exNo, folder:90, cn:cnNo, pr:12, po:31, cu, n:5, rq:1, br:6}, backups:{last:null, auto:true}, session:null};
 }
 
-window.SCDATA = {VERSION, NAMES, PASSWORD, ROLE_ORDER, PERMS, ALL_PERMS, SCOPE, DEFAULT_LIMIT, CUSTODY_TYPES, CATS, PROC_CATS, KINDS, path, vatOf, r2, seed};
+window.SCDATA = {VERSION, NAMES, ROLE_ORDER, PERMS, ALL_PERMS, SCOPE, DEFAULT_LIMIT, CUSTODY_TYPES, CATS, PROC_CATS, KINDS, path, vatOf, r2, seed};
 })();

@@ -8,7 +8,7 @@ SCI18N.tr = {
 "welcome_title":"Her riyalin hesabı tam.","welcome_sub":"Tüm ekibinizin avansları, harcamaları, faturaları ve onayları tek yerde.",
 "login_id":"E-posta veya sicil no","password":"Şifre","sign_in":"Giriş yap","or":"veya","google_continue":"Google ile devam et",
 "google_choose":"Bir Google hesabı seçin","google_demo_note":"Demo: uygulamada Google'ın kendi giriş sayfası açılır. Burada bir adres seçin. Yalnızca bir Smart Cash kullanıcısına bağlı adresler giriş yapabilir.",
-"err_no_user":"Bu e-posta veya sicil numarasıyla kullanıcı yok.","err_password":"Şifre yanlış. Demo şifresi Demo@2026.","err_inactive":"Bu hesap kapalı. Yöneticinize başvurun.",
+"err_no_user":"Bu e-posta veya sicil numarasıyla kullanıcı yok.","err_password":"Şifre yanlış.","err_inactive":"Bu hesap kapalı. Yöneticinize başvurun.",
 "err_google_unlinked":"Bu Google hesabı hiçbir Smart Cash kullanıcısına bağlı değil. Yöneticinizden bağlamasını isteyin.",
 "signed_in_as":"Giriş: {n} · {r}","sign_out":"Çıkış yap","switch_account":"Hesap değiştir","current":"Geçerli","sign_in_as":"{n} olarak giriş yap",
 "hello":"Merhaba, {n}","notifications":"Bildirimler","no_notifications":"Bildirim yok","n_inbox":"Onayınızı bekliyor","n_returned":"Düzeltmeniz için iade edildi","n_po":"Onay bekleyen satın alma siparişi",

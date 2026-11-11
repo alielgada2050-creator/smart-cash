@@ -2,6 +2,7 @@
 (function(){
 const D = window.SCDATA, GEO = window.SCGEO || [];
 const SC = window.SC = {};
+SC.DEMO_MODE = window.SC_DEMO_MODE === true;
 
 /* ------------------------------------------------------------------ languages */
 SC.LANGS = [
@@ -14,9 +15,10 @@ SC.LANGS = [
 ];
 
 /* ------------------------------------------------------------------ storage */
+const storagePrefix = SC.DEMO_MODE ? "sc3.demo." : "sc3.";
 const store = {
-  get(k, d){ try{ const v = localStorage.getItem("sc2."+k); return v===null ? d : v }catch{ return d } },
-  set(k, v){ try{ localStorage.setItem("sc2."+k, v); return true }catch{ return false } },
+  get(k, d){ try{ const v = localStorage.getItem(storagePrefix+k); return v===null ? d : v }catch{ return d } },
+  set(k, v){ try{ localStorage.setItem(storagePrefix+k, v); return true }catch{ return false } },
 };
 SC.store = store;
 SC.WS = ["personal","business","enterprise"];
@@ -40,7 +42,7 @@ SC.orgName = () => pickName(SC.S.org?.name);
 
 /* images (IndexedDB) */
 let idbP = null;
-function idb(){ if(idbP) return idbP; idbP = new Promise(res=>{ try{ const rq = indexedDB.open("smartcash", 1); rq.onupgradeneeded = () => rq.result.createObjectStore("img"); rq.onsuccess = () => res(rq.result); rq.onerror = () => res(null) }catch{ res(null) } }); return idbP }
+function idb(){ if(idbP) return idbP; idbP = new Promise(res=>{ try{ const rq = indexedDB.open(SC.DEMO_MODE ? "smartcash-demo-v3" : "smartcash-v3", 1); rq.onupgradeneeded = () => rq.result.createObjectStore("img"); rq.onsuccess = () => res(rq.result); rq.onerror = () => res(null) }catch{ res(null) } }); return idbP }
 SC.imgPut = async (id, blob) => { const db = await idb(); if(!db) return false; return new Promise(r=>{ try{ const tx = db.transaction("img","readwrite"); tx.objectStore("img").put(blob, id); tx.oncomplete=()=>r(true); tx.onerror=()=>r(false) }catch{ r(false) } }) };
 SC.imgGet = async (id) => { const db = await idb(); if(!db) return null; return new Promise(r=>{ try{ const q = db.transaction("img").objectStore("img").get(id); q.onsuccess=()=>r(q.result||null); q.onerror=()=>r(null) }catch{ r(null) } }) };
 async function idbClear(){ const db = await idb(); if(!db) return; try{ db.transaction("img","readwrite").objectStore("img").clear() }catch{} }
@@ -133,17 +135,19 @@ const admins = () => SC.S.users.filter(u=>D.PERMS[u.role]?.includes("approve_acc
 SC.hash = async (pw, salt) => { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${salt}:${pw}`)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("") };
 SC.policy = pw => { const p = String(pw||""); if(p.length<8) return "pw_short"; if(!/[A-Za-z]/.test(p) || !/\d/.test(p)) return "pw_mix"; return null };
 SC.tempPassword = () => { const a = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"; const r = new Uint32Array(8); crypto.getRandomValues(r); const s = [...r].map(x=>a[x%a.length]).join(""); return `Sc-${s.slice(0,4)}-${s.slice(4)}7` };
-async function checkPw(u, pw){ if(!u.pw) return pw === D.PASSWORD; return (await SC.hash(pw, u.id)) === u.pw }
+async function checkPw(u, pw){ if(!SC.DEMO_MODE || !u.pw) return false; return (await SC.hash(pw, u.id)) === u.pw }
 async function setPw(u, pw, mustChange){ u.pw = await SC.hash(pw, u.id); u.mustChange = !!mustChange; u.pwAt = SC.now(); u.fails = 0; if(u.status==="locked") u.status = "active" }
 SC.findLogin = ident => { const id = String(ident||"").trim().toLowerCase(); return SC.S.users.find(x => x.email.toLowerCase()===id || (x.emp && x.emp.toLowerCase()===id)) };
 
 SC.login = (userId, via) => {
+  if(!SC.DEMO_MODE) return false;
   const u = SC.user(userId); if(!u || u.status!=="active") return false;
   SC.S.session = {user:u.id, t:SC.now(), via};
   u.sessions.unshift({device:"dev_this", place:"Riyadh", t:SC.now(), via}); u.sessions.length = Math.min(u.sessions.length, 8);
   SC.audit("au_login", via); return true;
 };
 SC.passwordLogin = async (ident, pass) => {
+  if(!SC.DEMO_MODE) return "err_demo_only";
   const u = SC.findLogin(ident);
   if(!u) return "err_login";
   if(u.status==="pending") return "err_pending";
@@ -156,12 +160,6 @@ SC.passwordLogin = async (ident, pass) => {
   }
   u.fails = 0; SC.login(u.id, "password"); SC.save();
   return u.mustChange ? "must_change" : null;
-};
-SC.googleLogin = (gmail) => {
-  const u = SC.S.users.find(x => x.google && x.google.toLowerCase()===gmail.toLowerCase());
-  if(!u) return "err_google_unlinked";
-  if(u.status!=="active") return u.status==="pending" ? "err_pending" : u.status==="locked" ? "err_locked" : "err_inactive";
-  SC.login(u.id, "google"); SC.save(); return null;
 };
 SC.logout = () => { SC.audit("au_logout"); SC.S.session = null; SC.save() };
 SC.changePassword = async (oldPw, newPw, confirm) => {
@@ -489,14 +487,14 @@ function invRow(i){
     [SC.t("x_status")]:stT(i.status), [SC.t("x_step")]: i.status==="review" ? SC.t("role_"+i.steps[i.idx]) : "", [SC.t("x_by")]:SC.uname(i.by), [SC.t("x_advance")]:i.adv};
 }
 SC.xlsx = async (filename, sheets) => {
-  if(!window.XLSX) return "err_xlsx";
-  const wb = XLSX.utils.book_new(); if(SC.lang().dir==="rtl") wb.Workbook = {Views:[{RTL:true}]};
+  if(!window.ExcelJS) return "err_xlsx";
+  const wb = new ExcelJS.Workbook(); wb.views = [{rightToLeft:SC.lang().dir==="rtl"}];
   for(const [name, rows] of sheets){
-    const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{"":""}]); const keys = Object.keys(rows[0]||{});
-    ws["!cols"] = keys.map(k=>({wch: Math.min(40, Math.max(10, String(k).length+2, ...rows.slice(0,50).map(r=>String(r[k]??"").length+2)))}));
-    XLSX.utils.book_append_sheet(wb, ws, String(name).slice(0,31));
+    const ws = wb.addWorksheet(String(name).slice(0,31)), keys = Object.keys(rows[0]||{});
+    if(keys.length) ws.columns = keys.map(k=>({header:k, key:k, width:Math.min(40, Math.max(10, String(k).length+2, ...rows.slice(0,50).map(r=>String(r[k]??"").length+2)))}));
+    if(rows.length) ws.addRows(rows); else ws.addRow([""]);
   }
-  const err = await SC.saveFile(filename, new Blob([XLSX.write(wb, {bookType:"xlsx", type:"array"})]));
+  const err = await SC.saveFile(filename, new Blob([await wb.xlsx.writeBuffer()]));
   if(!err) SC.audit("au_export", filename); return err;
 };
 SC.exportFolder = (no) => {

@@ -32,7 +32,7 @@ const user = (o) => ({email:"", google:null, reportsTo:null, branch:null, projec
 
 /* ------------------------------------------------------------- individual */
 D.seedPersonal = () => {
-  const me = user({id:"u_me", name:["أحمد الزهراني","Ahmed Al-Zahrani"], role:"personal", emp:"—", email:"ahmed.z@smartcash.demo", google:"ahmed.z.demo@gmail.com", phone:"+966 55 712 3004", demo:true});
+  const me = user({id:"u_me", name:["أحمد الزهراني","Ahmed Al-Zahrani"], role:"personal", emp:"—", email:"ahmed.z@smartcash.demo", phone:"+966 55 712 3004", demo:true});
   const contacts = [
     {id:"pc1", n:"khalid_b", kind:"customer", owner:"u_me", phone:"+966 50 441 2290", entries:[{dir:"gave", amt:1500, t:iso(10,12,19,0), note:"loan"},{dir:"got", amt:500, t:iso(11,1,20,0)}]},
     {id:"pc2", n:"nawaf", kind:"customer", owner:"u_me", phone:"+966 53 118 7742", entries:[{dir:"gave", amt:350, t:iso(10,28,21,0)}]},
@@ -63,7 +63,7 @@ D.seedPersonal = () => {
 
 /* ------------------------------------------------------------- small business */
 D.seedBusiness = () => {
-  const owner = user({id:"u_owner", name:["فهد العتيبي","Fahd Al-Otaibi"], role:"owner", emp:"O-001", email:"fahd@alfahd-maint.demo", google:"fahd.owner.demo@gmail.com", limit:null, phone:"+966 50 600 1100", branch:"HQ", demo:true});
+  const owner = user({id:"u_owner", name:["فهد العتيبي","Fahd Al-Otaibi"], role:"owner", emp:"O-001", email:"fahd@alfahd-maint.demo", limit:null, phone:"+966 50 600 1100", branch:"HQ", demo:true});
   const staff = [["u_bt1",["ساجيف كومار","Sajeev Kumar"],"+966 55 120 3301"],["u_bt2",["بلال أحمد","Bilal Ahmed"],"+966 53 449 2210"],["u_bt3",["مارك سانتوس","Mark Santos"],"+966 58 702 1145"],["u_bt4",["سعيد الغامدي","Saeed Al-Ghamdi"],"+966 56 330 8890"]]
     .map(([id,name,phone],k)=>user({id, name, role:"technician", emp:`B-10${k+1}`, email:`${name[1].toLowerCase().replace(/[^a-z ]/g,"").split(" ").join(".")}@alfahd-maint.demo`, reportsTo:"u_owner", branch:"HQ", phone, demo:k===0}));
   const users = [owner, ...staff];
@@ -102,7 +102,7 @@ D.seedBusiness = () => {
   return {v:D.VERSION, plan:"business", org:{name:["مؤسسة الفهد للصيانة","Al Fahd Maintenance Est."]}, users,
     branches:[{id:"HQ", name:["المقر الرئيسي","Head office"], region:"riyadh", gov:"riyadh"}], projects:[], advances, folders, invoices, prs:[], pos:[], contacts, suppliers:sups,
     notifs:[{id:"N1", to:"u_owner", k:"n_inbox", ref:{type:"invoice", id:invoices.find(i=>i.status==="review").id}, by:"u_bt1", t:iso(11,6,9,0), read:false}],
-    requests:[], audit:[{t:iso(11,7,8,0), by:"u_owner", ev:"au_login", d:"google"}],
+    requests:[], audit:[{t:iso(11,7,8,0), by:"u_owner", ev:"au_login", d:"password"}],
     integrations:D.integrationDefaults("business"), waOutbox:[], seq:{ex, folder:20, cn:0, pr:0, po:0, cu:310, n:1, rq:0, br:1}, backups:{last:null, auto:true}, session:null};
 };
 

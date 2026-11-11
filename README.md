@@ -4,14 +4,14 @@
 
 An expense, petty-cash custody, invoice and approval management app. It pairs the simplicity of a daily "gave / got" ledger with the financial controls a company needs, and ships as an installable PWA for phone, tablet and desktop.
 
-> **Status — v0.7 prototype.** Phase 1 (analysis and foundations) is approved; Phase 2 (requirements and interactive prototype) is in progress. The app runs entirely in the browser with sample data. There is no backend yet. See [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> **Status — prototype, not production software.** Financial records and roles still run in the browser and are not protected by a server. The published app starts with an empty workspace; the sample preview is opt-in with `?demo=1`. Do not enter real personal or financial data. See [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ---
 
 ## Features (prototype)
 
 - **Three workspaces in one app:** individuals, small businesses and enterprises. Each has its own data, and you switch between them from the login screen.
-- **Roles and approvals:** technician → supervisor → engineer → project manager → finance, with per-role approval limits and data scopes. Demo accounts for every role are listed on the login screen, along with their shared password.
+- **Roles and approvals:** technician → supervisor → engineer → project manager → finance, with per-role approval limits and data scopes. These client-side roles are simulated and are not a security boundary.
 - **Custody (petty cash):** issue, top-up, spend and settle custody, with statements.
 - **Invoices:** photo upload, VAT invoice QR scanning (jsQR), batching invoices into folders for approval.
 - **Payments and WhatsApp:** payment-request links and ready-made WhatsApp messages for every transaction.
@@ -20,23 +20,23 @@ An expense, petty-cash custody, invoice and approval management app. It pairs th
 - **12 languages,** including Arabic, English, French, Urdu, Hindi, Bengali, Filipino, Malayalam, Nepali, Indonesian, Persian and Turkish, with RTL support and light/dark themes.
 - **Works offline** after the first load, thanks to a service worker.
 
-What is real and what is simulated is listed in [docs/SEGMENTS_AND_INTEGRATIONS.md §9](docs/SEGMENTS_AND_INTEGRATIONS.md) and [docs/PAYMENTS_SAVINGS_SUPPORT.md §10](docs/PAYMENTS_SAVINGS_SUPPORT.md).
+Sample screens and data are available only in the explicit demo preview (`?demo=1`). What is real and what is simulated is listed in [docs/SEGMENTS_AND_INTEGRATIONS.md §9](docs/SEGMENTS_AND_INTEGRATIONS.md) and [docs/PAYMENTS_SAVINGS_SUPPORT.md §10](docs/PAYMENTS_SAVINGS_SUPPORT.md).
 
 Smart Cash never holds money. Card issuing and money transfers are out of scope.
 
 ## Quick start
 
-Requires Python 3. No other dependencies.
+Requires Python 3. Browser libraries are vendored locally; no CDN requests are needed by the prototype.
 
 ```bash
 python3 app/build.py                      # builds prototype/ into dist/
 cd dist && python3 -m http.server 8080    # open http://localhost:8080
 ```
 
-To work on the source without building, serve `prototype/` and open `smart-cash.html`:
+To work on the source without building, serve `prototype/`. The default workspace is empty; append `?demo=1` to preview fabricated sample data:
 
 ```bash
-cd prototype && python3 -m http.server 8080   # http://localhost:8080/smart-cash.html
+cd prototype && python3 -m http.server 8080   # http://localhost:8080/smart-cash.html?demo=1
 ```
 
 On Windows, use `python` or `py` in place of `python3`.
@@ -51,11 +51,17 @@ The PWA install option needs HTTPS (or `localhost`).
 
 ## Data
 
-Everything is stored in the browser's `localStorage` on the device. There is no server and no sync between devices.
+The prototype has no financial-data API and no cross-device sync. In the default mode, sample fixtures are not loaded. The opt-in demo preview stores demo state in a separate local browser namespace.
 
-- **Start with your own data:** use *Start with my own data* on the login screen, or *Me → Clear sample data*.
-- **Restore the samples:** *Me → Reset*.
-- **Back up regularly** using the in-app export. Clearing browser data deletes everything.
+- Do not use the prototype to store actual personal, employee, invoice, or financial information.
+- Existing local browser data from older versions is not automatically deleted; it is isolated from the new prototype storage namespace.
+- The browser's demo-mode login and permissions are intentionally not treated as secure authentication.
+
+## Email OTP API
+
+[server/](server/) contains an authentication-only NestJS API foundation. It sends one-time codes through Gmail API OAuth2 to existing active `sk.users` email accounts. Configure the API endpoint in `prototype/js/prototype-config.js` after deploying it. The UI can verify an email identity, but this does **not** unlock or protect the local demo workspace. Production use requires moving financial data and all authorization checks to authenticated server endpoints first.
+
+For setup, migration SQL, Gmail OAuth configuration, and Render deployment instructions, see [server/README.md](server/README.md). Never commit `.env`, Gmail OAuth secrets, database URLs, or signing keys.
 
 ## Deploy
 
@@ -84,8 +90,10 @@ Each test prints `PASS` or raises an error. The prototype does not use this data
 
 ```
 smart-cash/
-├── prototype/              source: the interactive app
+├── prototype/              source: the interactive demo app
 │   ├── smart-cash.html     markup, styles, script loading
+│   ├── package.json        versions of locally hosted browser libraries
+│   └── vendor/             browser dependencies and their licenses
 │   └── js/
 │       ├── core.js         state, auth, permissions, persistence
 │       ├── data.js         sample users, projects, invoices
@@ -96,11 +104,12 @@ smart-cash/
 ├── app/                    PWA build script (build.py) and icons
 ├── dist/                   build output (regenerated by build.py, do not edit)
 ├── db/                     PostgreSQL schema and integrity tests
+├── server/                 NestJS email OTP API foundation
 ├── docs/                   requirements, design and architecture (Arabic)
 └── .github/workflows/      GitHub Pages deployment
 ```
 
-Edit files in `prototype/` and `app/`, never in `dist/`: `build.py` deletes and recreates `dist/`. When you change cached files, bump the cache version `V` in `build.py` (currently `smartcash-v0.7`) so installed apps pick up the update.
+Edit files in `prototype/` and `app/`, never in `dist/`: `build.py` deletes and recreates `dist/`. When you change cached files, bump the cache version `V` in `build.py` so installed apps pick up the update.
 
 ## Documentation
 

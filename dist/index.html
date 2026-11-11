@@ -7,9 +7,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Smart Cash">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html,body{margin:0;height:100%}</style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;600;700&display=swap">
 <style>
 /* Layout: phone prototype (HarmonyOS-style glass widgets on a soft wallpaper) beside a control panel.
    Palette: Uber-like monochrome, one blue for action; green/amber/red only for status. */
@@ -722,9 +719,9 @@ html.app .intro{inset:0}
 <input type="file" id="file-camera" accept="image/*" capture="environment" hidden>
 <input type="file" id="file-restore" accept=".zip,.json,application/zip,application/json" hidden>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="vendor/exceljs.min.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/jsQR.js"></script>
 <script charset="utf-8" src="js/i18n/en.js"></script>
 <script charset="utf-8" src="js/i18n/ar.js"></script>
 <script charset="utf-8" src="js/i18n/fr.js"></script>
@@ -741,6 +738,7 @@ html.app .intro{inset:0}
 <script charset="utf-8" src="js/data.js"></script>
 <script charset="utf-8" src="js/plans.js"></script>
 <script charset="utf-8" src="js/plans6.js"></script>
+<script charset="utf-8" src="js/prototype-config.js"></script>
 <script charset="utf-8" src="js/core.js"></script>
 <script charset="utf-8" src="js/pay.js"></script>
 <script charset="utf-8" src="js/views.js"></script>

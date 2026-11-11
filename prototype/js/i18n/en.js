@@ -1,14 +1,21 @@
 window.SCI18N = window.SCI18N || {};
 SCI18N.en = {
 "app_name":"Smart Cash",
-"panel_desc":"Interactive prototype of Smart Cash. Sign in with any demo account to see how each role works. Sample data is kept only in this browser.",
+"panel_desc":"Smart Cash browser prototype. The default workspace is empty; fabricated samples are available only in the explicit demo preview. Never enter real financial or personal data.",
 "p_lang":"Language","p_theme":"Appearance","sys":"System","light":"Light","dark":"Dark",
-"demo_accounts":"Demo accounts","demo_hint":"Tap an account to sign in. Password for all: {p}","reset_demo":"Reset demo data",
+"demo_accounts":"Demo accounts","demo_hint":"Choose a sample account.","demo_preview_hint":"Choose a fabricated profile to preview; access controls are not enforced.","reset_demo":"Reset demo data",
 "reset_note":"This puts every invoice, folder, user and order back to the starting sample. Photos you imported are removed.","reset_done":"Demo data reset",
 "welcome_title":"Every riyal, accounted for.","welcome_sub":"Advances, expenses, invoices and approvals for your whole team, in one place.",
 "login_id":"Email or employee number","password":"Password","sign_in":"Sign in","or":"or","google_continue":"Continue with Google",
+"otp_sign_in":"Email one-time code","otp_send":"Send a code","otp_code":"6-digit code","otp_verify":"Verify code","otp_verified":"Email verified",
+"otp_request_sent":"If the account is eligible, a code will be sent to that email address.","otp_configure":"Email-code sign-in is unavailable until the server URL is configured.",
+"otp_invalid_email":"Enter a valid email address.","otp_invalid_code":"Enter the 6-digit code from your email.",
+"otp_invalid":"The code is invalid or expired. Request a new code and try again.","otp_unavailable":"Could not reach the authentication service. Try again later.",
+"otp_logout_warning":"The session could not be revoked online; it will expire automatically within 15 minutes.","otp_demo_limit":"Email verification does not unlock or protect the local demo data.",
+"prototype_warning":"This browser prototype is not connected to the financial-data API. Do not enter real personal or financial information.",
+"demo_only_warning":"Demo preview only. Roles and passwords are simulated and are not security controls. Use the sample data only.",
 "google_choose":"Choose a Google account","google_demo_note":"Demo: in the app this opens Google's own sign-in page. Here, pick an address. Only addresses linked to a Smart Cash user can sign in.",
-"err_no_user":"No user with that email or employee number.","err_password":"Wrong password. Demo password is Demo@2026.","err_inactive":"This account is turned off. Ask your administrator.",
+"err_no_user":"No user with that email or employee number.","err_password":"Wrong password.","err_inactive":"This account is turned off. Ask your administrator.",
 "err_google_unlinked":"This Google account isn't linked to any Smart Cash user. Ask your administrator to link it.",
 "signed_in_as":"Signed in as {n} · {r}","sign_out":"Sign out","switch_account":"Switch account","current":"Current","sign_in_as":"Sign in as {n}",
 "hello":"Hello, {n}","notifications":"Notifications","no_notifications":"No notifications","n_inbox":"Waiting for your approval","n_returned":"Returned to you to fix","n_po":"Purchase order waiting for approval",
@@ -147,7 +154,7 @@ Object.assign(SCI18N.en, {
 "wanted_role":"Requested role","webhooks":"Webhooks","whatsapp":"WhatsApp","with_staff":"With staff","work_email":"Work email","write_comment":"Write a comment…",
 "ws_business":"Small business","ws_business_sub":"Owner and a few staff","ws_choose":"Choose a workspace","ws_enterprise":"Large company","ws_enterprise_sub":"1,500 people, branches, ERP","ws_personal":"Individual","ws_personal_sub":"You gave, you got, your spending",
 "x_account":"Account","x_all_sub_admin":"Invoices, folders, advances, approvals, orders, projects, users and suppliers","x_branch":"Branch","x_code":"Code","x_cost_center":"Cost center","x_cr":"Commercial reg.","x_credit_col":"Credit","x_debit":"Debit","x_journal":"Journal","x_projects":"Projects","x_ref":"Reference","x_team":"Team","x_used":"Used",
-"about":"Smart Cash · prototype 0.5","panel_desc":"Interactive prototype of Smart Cash for individuals, small businesses and large companies. Pick a workspace, then sign in with any demo account. Sample data is kept only in this browser."
+"about":"Smart Cash · prototype 0.5","panel_desc":"Smart Cash browser prototype for individuals, small businesses and large companies. The default workspace is empty; fabricated samples are available only in the explicit demo preview. Never enter real financial or personal data."
 });
 Object.assign(SCI18N.en, {
 "budget_near":"Near budget","budget_over":"Over budget","connected":"Connected","not_connected":"Not connected","cust_open":"Open","cust_settled":"Settled","cust_from":"Received from","cust_to":"Given to",

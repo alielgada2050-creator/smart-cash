@@ -8,14 +8,14 @@ const TX = {
    {h:"فواتير <em>تُقرأ</em> بالذكاء الاصطناعي",p:"صوّر الفاتورة فيستخرج التطبيق المورد والمبلغ والضريبة، وتُحفظ في حافظة مرتبة."},
    {h:"دفتر <em>أعطيت وأخذت</em> لعملائك",p:"تابع الديون، وبرمج تذكيرًا لكل عميل، وأرسل كشف الحساب وروابط الدفع عبر واتساب."},
    {h:"ادّخر لأهدافك <em>بذكاء</em>",p:"حدّد هدفًا ومبلغًا شهريًا، وتابع تقدّمك بحلقة واضحة وتوقعات واقعية."},
-   {h:"<em>أمان</em> وتقارير جاهزة",p:"نسخ احتياطي تلقائي، وتقرير PDF لأي فترة، ومزامنة بين أجهزتك. أموالك لا تمرّ عبرنا."}]},
+   {h:"<em>أمان</em> وتقارير جاهزة",p:"تصدير يدوي للتقارير فقط. هذه معاينة محلية بلا نسخ احتياطي تلقائي أو مزامنة بين الأجهزة."}]},
  en:{skip:"Skip",next:"Next",start:"Get started",replay:"Quick tour",
   s:[
    {h:"All your <em>spending</em> in one place",p:"Log income and expenses in seconds, see your balance now and how much you can safely spend each day."},
    {h:"Invoices <em>read</em> by AI",p:"Snap a bill and the app picks out the supplier, amount and VAT, then files it in a tidy folder."},
    {h:"A <em>gave &amp; got</em> book for your people",p:"Track who owes what, schedule a reminder per person, and send statements and payment links on WhatsApp."},
    {h:"Save for your goals, <em>smartly</em>",p:"Set a target and a monthly amount, then follow progress with a clear ring and realistic forecasts."},
-   {h:"<em>Secure</em>, with reports on demand",p:"Automatic backup, a PDF report for any period, and sync across your devices. Your money never passes through us."}]}
+   {h:"<em>Prototype</em>, with reports on demand",p:"Manual exports only. This local preview has no automatic backup or cross-device sync."}]}
 };
 const ART = [
  '<rect x="40" y="70" width="140" height="96" rx="18" fill="var(--ia)"/><rect x="40" y="70" width="140" height="30" rx="18" fill="#000" opacity=".18"/><circle cx="150" cy="118" r="16" fill="#fff"/><path d="M62 122h44M62 140h28" stroke="#fff" stroke-width="6" stroke-linecap="round"/><rect x="110" y="40" width="96" height="62" rx="14" fill="#06C167"/><path d="M128 78l14-14 12 10 20-22" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -50,7 +50,7 @@ const css = `
 let el = null;
 function close(){ try{ localStorage.setItem("sc2.intro","1") }catch(e){} if(el){ el.remove(); el = null } }
 SC.showIntro = function(){
-  if(el) return;
+  if(!SC.DEMO_MODE || el) return;
   const lang = SC.ui && SC.ui.lang, L = TX[lang] || TX.en, rtl = ["ar","ur","fa"].includes(lang), n = L.s.length;
   if(!document.getElementById("intro-css")){ const st = document.createElement("style"); st.id = "intro-css"; st.textContent = css; document.head.appendChild(st) }
   el = document.createElement("div"); el.className = "intro"; el.dir = rtl ? "rtl" : "ltr"; el.setAttribute("role","dialog");
@@ -70,5 +70,5 @@ SC.showIntro = function(){
 const base = SC.afterRender;
 SC.afterRender = function(){ if(base) base.apply(this, arguments);
   try{ if(!el && !localStorage.getItem("sc2.intro")) SC.showIntro() }catch(e){ if(!el && !window.__introShown){ window.__introShown = 1; SC.showIntro() } } };
-try{ if(!localStorage.getItem("sc2.intro")) SC.showIntro() }catch(e){ SC.showIntro() }
+try{ if(SC.DEMO_MODE && !localStorage.getItem("sc2.intro")) SC.showIntro() }catch(e){ if(SC.DEMO_MODE) SC.showIntro() }
 })();

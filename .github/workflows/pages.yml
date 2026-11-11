@@ -18,6 +18,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --prefix prototype
+      - run: npm ci --prefix server
+      - run: npm audit --prefix prototype --audit-level=moderate
+      - run: npm audit --prefix server --audit-level=moderate
+      - run: npm run build --prefix server
       - run: python3 app/build.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

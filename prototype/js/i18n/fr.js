@@ -8,7 +8,7 @@ SCI18N.fr = {
 "welcome_title":"Chaque riyal, justifié.","welcome_sub":"Avances, dépenses, factures et validations de toute votre équipe, au même endroit.",
 "login_id":"E-mail ou matricule","password":"Mot de passe","sign_in":"Se connecter","or":"ou","google_continue":"Continuer avec Google",
 "google_choose":"Choisir un compte Google","google_demo_note":"Démo : dans l'application, la page de connexion Google s'ouvre. Ici, choisissez une adresse. Seules les adresses liées à un utilisateur Smart Cash peuvent se connecter.",
-"err_no_user":"Aucun utilisateur avec cet e-mail ou ce matricule.","err_password":"Mot de passe incorrect. Le mot de passe de démo est Demo@2026.","err_inactive":"Ce compte est désactivé. Contactez votre administrateur.",
+"err_no_user":"Aucun utilisateur avec cet e-mail ou ce matricule.","err_password":"Mot de passe incorrect.","err_inactive":"Ce compte est désactivé. Contactez votre administrateur.",
 "err_google_unlinked":"Ce compte Google n'est lié à aucun utilisateur Smart Cash. Demandez à votre administrateur de le lier.",
 "signed_in_as":"Connecté : {n} · {r}","sign_out":"Se déconnecter","switch_account":"Changer de compte","current":"Actuel","sign_in_as":"Se connecter en tant que {n}",
 "hello":"Bonjour, {n}","notifications":"Notifications","no_notifications":"Aucune notification","n_inbox":"En attente de votre validation","n_returned":"Renvoyé pour correction","n_po":"Bon de commande en attente de validation",
