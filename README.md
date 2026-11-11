@@ -1,19 +1,131 @@
 # سمارت كاش · Smart Cash
 
-نموذج تطبيق لإدارة المصروفات والعهد والفواتير (خطط: أفراد، مؤسسة صغيرة، شركة كبرى). يعمل كتطبيق ويب قابل للتثبيت (PWA) على الجوال والتابلت والكمبيوتر.
+تطبيق لإدارة المصروفات والعُهد والفواتير والاعتمادات، يجمع بساطة دفتر «أعطيت / أخذت» اليومي مع حوكمة مالية للشركات. يعمل كتطبيق ويب قابل للتثبيت (PWA) على الجوال والتابلت والكمبيوتر.
 
-Prototype of an expense, custody and invoice management app (plans: individuals, small business, enterprise). Ships as an installable PWA.
+An expense, petty-cash custody, invoice and approval management app. It pairs the simplicity of a daily "gave / got" ledger with the financial controls a company needs, and ships as an installable PWA for phone, tablet and desktop.
 
-## Run locally
-    python3 app/build.py
-    cd dist && python3 -m http.server 8080   # open http://localhost:8080
+> **Status — v0.7 prototype.** Phase 1 (analysis and foundations) is approved; Phase 2 (requirements and interactive prototype) is in progress. The app runs entirely in the browser with sample data. There is no backend yet. See [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
-## Deploy
-Pushing to `main` builds `dist/` and publishes it with GitHub Pages (Settings → Pages → Source: GitHub Actions).
+---
+
+## Features (prototype)
+
+- **Three workspaces in one app:** individuals, small businesses and enterprises. Each has its own data, and you switch between them from the login screen.
+- **Roles and approvals:** technician → supervisor → engineer → project manager → finance, with per-role approval limits and data scopes. Demo accounts for every role are listed on the login screen, along with their shared password.
+- **Custody (petty cash):** issue, top-up, spend and settle custody, with statements.
+- **Invoices:** photo upload, VAT invoice QR scanning (jsQR), batching invoices into folders for approval.
+- **Payments and WhatsApp:** payment-request links and ready-made WhatsApp messages for every transaction.
+- **Smart account and savings** for individuals.
+- **ERP and accounting export:** journal entries as CSV / XLSX. Sending to an ERP is simulated.
+- **12 languages,** including Arabic, English, French, Urdu, Hindi, Bengali, Filipino, Malayalam, Nepali, Indonesian, Persian and Turkish, with RTL support and light/dark themes.
+- **Works offline** after the first load, thanks to a service worker.
+
+What is real and what is simulated is listed in [docs/SEGMENTS_AND_INTEGRATIONS.md §9](docs/SEGMENTS_AND_INTEGRATIONS.md) and [docs/PAYMENTS_SAVINGS_SUPPORT.md §10](docs/PAYMENTS_SAVINGS_SUPPORT.md).
+
+Smart Cash never holds money. Card issuing and money transfers are out of scope.
+
+## Quick start
+
+Requires Python 3. No other dependencies.
+
+```bash
+python3 app/build.py                      # builds prototype/ into dist/
+cd dist && python3 -m http.server 8080    # open http://localhost:8080
+```
+
+To work on the source without building, serve `prototype/` and open `smart-cash.html`:
+
+```bash
+cd prototype && python3 -m http.server 8080   # http://localhost:8080/smart-cash.html
+```
+
+On Windows, use `python` or `py` in place of `python3`.
+
+### Install as an app
+
+The PWA install option needs HTTPS (or `localhost`).
+
+- **Android:** Chrome menu → *Install app*
+- **iPhone / iPad:** Safari → Share → *Add to Home Screen*
+- **Windows / macOS:** the install icon in the Chrome or Edge address bar
 
 ## Data
-Everything is stored in the browser on the device (no server, no sync). Sample data is included for the demo; clear it from the login screen ("Start with my own data") or Me → Clear sample data.
 
-## Layout
-- `prototype/` source (HTML + JS), `app/` PWA build script and icons, `db/` PostgreSQL schema and tests, `docs/` design and architecture.
-- Smart Cash never holds money; card issuing and transfers are out of scope.
+Everything is stored in the browser's `localStorage` on the device. There is no server and no sync between devices.
+
+- **Start with your own data:** use *Start with my own data* on the login screen, or *Me → Clear sample data*.
+- **Restore the samples:** *Me → Reset*.
+- **Back up regularly** using the in-app export. Clearing browser data deletes everything.
+
+## Deploy
+
+Every push to `main` runs [.github/workflows/pages.yml](.github/workflows/pages.yml). The workflow runs `app/build.py` and publishes `dist/` to GitHub Pages. To enable it, go to *Settings → Pages → Source: GitHub Actions*.
+
+`dist/` is static, so Netlify, Vercel or Cloudflare Pages work too: upload the folder as-is. Instructions in Arabic are in [dist/README-AR.txt](dist/README-AR.txt).
+
+## Database (target backend)
+
+[db/schema.sql](db/schema.sql) holds the PostgreSQL 16 data model for the future backend. It uses:
+
+- multi-tenant row-level security
+- exact `NUMERIC` money
+- balances derived from append-only transaction tables
+- a hash-chained audit log
+
+[db/tests.sql](db/tests.sql) holds the financial-integrity tests. Run them against an empty database:
+
+```bash
+psql -v ON_ERROR_STOP=1 -f db/schema.sql -f db/tests.sql
+```
+
+Each test prints `PASS` or raises an error. The prototype does not use this database yet.
+
+## Repository layout
+
+```
+smart-cash/
+├── prototype/              source: the interactive app
+│   ├── smart-cash.html     markup, styles, script loading
+│   └── js/
+│       ├── core.js         state, auth, permissions, persistence
+│       ├── data.js         sample users, projects, invoices
+│       ├── plans*.js       workspaces / plans
+│       ├── views*.js       screens
+│       ├── pay.js cash.js cust.js live.js intro.js geo.js
+│       └── i18n/           12 language files
+├── app/                    PWA build script (build.py) and icons
+├── dist/                   build output (regenerated by build.py, do not edit)
+├── db/                     PostgreSQL schema and integrity tests
+├── docs/                   requirements, design and architecture (Arabic)
+└── .github/workflows/      GitHub Pages deployment
+```
+
+Edit files in `prototype/` and `app/`, never in `dist/`: `build.py` deletes and recreates `dist/`. When you change cached files, bump the cache version `V` in `build.py` (currently `smartcash-v0.7`) so installed apps pick up the update.
+
+## Documentation
+
+The project documents are in Arabic. Start with [docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md).
+
+| Document | Contents |
+|---|---|
+| [PROJECT_OVERVIEW](docs/PROJECT_OVERVIEW.md) | Project summary and document index |
+| [IMPLEMENTATION_PLAN](docs/IMPLEMENTATION_PLAN.md) | The seven phases, approval gates and status |
+| [SYSTEM_ARCHITECTURE](docs/SYSTEM_ARCHITECTURE.md) | Tech choices, invoice engine, sync |
+| [DATABASE_SCHEMA](docs/DATABASE_SCHEMA.md) | Data model and integrity tests |
+| [USER_ROLES_PERMISSIONS](docs/USER_ROLES_PERMISSIONS.md) | RBAC × data scope × approval limits |
+| [APPROVAL_WORKFLOW](docs/APPROVAL_WORKFLOW.md) | Data-driven approval flows, custody lifecycle |
+| [SEGMENTS_AND_INTEGRATIONS](docs/SEGMENTS_AND_INTEGRATIONS.md) | Workspaces, WhatsApp, ERP integrations |
+| [PAYMENTS_SAVINGS_SUPPORT](docs/PAYMENTS_SAVINGS_SUPPORT.md) | Payment links, smart account, savings, support |
+| [SCREENS_DESIGN](docs/SCREENS_DESIGN.md) | Screen map and layouts |
+| [DESIGN_SYSTEM](docs/DESIGN_SYSTEM.md) | Colors, type, languages, components |
+| [REVERSE_ENGINEERING_REPORT](docs/REVERSE_ENGINEERING_REPORT.md) | Functional analysis of the reference app (clean-room) |
+
+## Roadmap
+
+1. ✅ Analysis and foundations
+2. 🔄 Requirements and interactive prototype
+3. Architecture: API (OpenAPI), security policy, Docker, CI
+4. MVP: NestJS backend, Flutter Android app, web dashboard
+5. AI features: price comparison, duplicate and tampering detection, three-way matching
+6. Testing
+7. Launch: Android, Windows, Web, iOS
